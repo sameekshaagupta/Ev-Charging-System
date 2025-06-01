@@ -59,38 +59,37 @@
       </div>
 
       <!-- Modal Overlay -->
-      <transition name="modal-overlay">
-        <div v-if="showAddForm" class="modal-backdrop" @click="closeModal"></div>
-      </transition>
+      <div v-if="showAddForm" class="modal-backdrop" @click.self="closeModal"></div>
 
       <!-- Centered Modal Form -->
-      <transition name="modal">
-        <div v-if="showAddForm" class="station-modal">
-          <div class="station-modal-content">
-            <div class="station-modal-header">
-              <div class="modal-header-content">
-                <h2 class="modal-title">
-                  <span class="modal-icon">⚡</span>
-                  {{ stationToEdit ? 'Edit Station' : 'Add New Station' }}
-                </h2>
-                <p class="modal-subtitle">
-                  {{ stationToEdit ? 'Update existing charging station details' : 'Create a new charging station in your network' }}
-                </p>
+      <teleport to="body">
+        <transition name="modal">
+          <div v-if="showAddForm" class="station-modal">
+            <div class="station-modal-content">
+              <div class="station-modal-header">
+                <div class="modal-header-content">
+                  <h2 class="modal-title">
+                    <span class="modal-icon">⚡</span>
+                    {{ stationToEdit ? 'Edit' : 'Add New' }} Station
+                  </h2>
+                  <p class="modal-subtitle">{{ stationToEdit ? 'Update' : 'Create' }} a charging station in your network</p>
+                </div>
+                <button @click="closeModal" class="close-modal">
+                  <span class="close-icon">&times;</span>
+                </button>
               </div>
-              <button @click="closeModal" class="close-modal">
-                <span class="close-icon">&times;</span>
-              </button>
-            </div>
-            <div class="station-modal-body">
-              <ChargingStationForm 
-                @submit="handleAddStation" 
-                @cancel="closeModal" 
-                :initialData="stationToEdit"
-              />
+              <div class="station-modal-body">
+                <ChargingStationForm 
+                  @submit="handleAddStation" 
+                  @cancel="closeModal" 
+                  :initialData="stationToEdit || defaultStationData"
+                  :editMode="!!stationToEdit"
+                />
+              </div>
             </div>
           </div>
-        </div>
-      </transition>
+        </transition>
+      </teleport>
 
       <!-- Stations Grid/Table -->
       <div class="stations-container">
@@ -113,125 +112,121 @@
         </div>
 
         <!-- Grid View -->
-        <transition name="fade">
-          <div v-if="viewMode === 'grid'" class="stations-grid">
-            <div 
-              v-for="station in paginatedStations" 
-              :key="station._id" 
-              class="station-card"
-              @click="selectStation(station)"
-            >
-              <div class="station-card-header">
-                <div class="station-info">
-                  <h4 class="station-name">{{ station.name }}</h4>
-                  <span :class="`status-badge ${station.status.toLowerCase()}`">
-                    {{ station.status }}
-                  </span>
+        <div v-if="viewMode === 'grid'" class="stations-grid">
+          <div 
+            v-for="station in paginatedStations" 
+            :key="station._id" 
+            class="station-card"
+            @click="selectStation(station)"
+          >
+            <div class="station-card-header">
+              <div class="station-info">
+                <h4 class="station-name">{{ station.name }}</h4>
+                <span :class="`status-badge ${station.status.toLowerCase()}`">
+                  {{ station.status }}
+                </span>
+              </div>
+              <div class="station-power">
+                <span class="power-value">{{ station.powerOutput }}</span>
+                <span class="power-unit">kW</span>
+              </div>
+            </div>
+            
+            <div class="station-card-body">
+              <div class="location-info">
+                <div class="address" v-if="station.location?.address">
+                  📍 {{ station.location.address }}
                 </div>
-                <div class="station-power">
-                  <span class="power-value">{{ station.powerOutput }}</span>
-                  <span class="power-unit">kW</span>
+                <div class="coordinates">
+                  🌐 {{ station.location?.latitude?.toFixed(4) }}, {{ station.location?.longitude?.toFixed(4) }}
                 </div>
               </div>
               
-              <div class="station-card-body">
-                <div class="location-info">
-                  <div class="address" v-if="station.location?.address">
-                    📍 {{ station.location.address }}
-                  </div>
-                  <div class="coordinates">
-                    🌐 {{ station.location?.latitude?.toFixed(4) }}, {{ station.location?.longitude?.toFixed(4) }}
-                  </div>
-                </div>
-                
-                <div class="connector-info">
-                  <span class="connector-label">Connector:</span>
-                  <span class="connector-type">{{ station.connectorType }}</span>
-                </div>
-              </div>
-
-              <div class="station-card-actions">
-                <button @click.stop="editStation(station)" class="action-btn edit-btn">
-                  ✏️ Edit
-                </button>
-                <button @click.stop="confirmDeleteStation(station._id)" class="action-btn delete-btn">
-                  🗑️ Delete
-                </button>
+              <div class="connector-info">
+                <span class="connector-label">Connector:</span>
+                <span class="connector-type">{{ station.connectorType }}</span>
               </div>
             </div>
 
-            <div v-if="filteredStations.length === 0" class="empty-state">
-              <div class="empty-icon">⚡</div>
-              <h3>No charging stations found</h3>
-              <p>Create your first charging station to get started</p>
-              <button @click="openAddForm" class="empty-action-btn">
-                Add Station
+            <div class="station-card-actions">
+              <button @click.stop="editStation(station)" class="action-btn edit-btn">
+                ✏️ Edit
+              </button>
+              <button @click.stop="confirmDeleteStation(station._id)" class="action-btn delete-btn">
+                🗑️ Delete
               </button>
             </div>
           </div>
-        </transition>
+
+          <div v-if="filteredStations.length === 0" class="empty-state">
+            <div class="empty-icon">⚡</div>
+            <h3>No charging stations found</h3>
+            <p>Create your first charging station to get started</p>
+            <button @click="openAddForm" class="empty-action-btn">
+              Add Station
+            </button>
+          </div>
+        </div>
 
         <!-- Table View -->
-        <transition name="fade">
-          <div v-if="viewMode === 'table'" class="stations-table-container">
-            <div class="table-wrapper">
-              <table class="stations-table">
-                <thead>
-                  <tr>
-                    <th>Station</th>
-                    <th>Location</th>
-                    <th>Status</th>
-                    <th>Power</th>
-                    <th>Connector</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="station in paginatedStations" :key="station._id" class="station-row">
-                    <td class="station-cell">
-                      <div class="station-name-cell">
-                        <span class="station-icon">⚡</span>
-                        <span class="station-name">{{ station.name }}</span>
-                      </div>
-                    </td>
-                    <td class="location-cell">
-                      <div v-if="station.location?.address" class="address">{{ station.location.address }}</div>
-                      <div class="coordinates">
-                        {{ station.location?.latitude?.toFixed(4) }}, {{ station.location?.longitude?.toFixed(4) }}
-                      </div>
-                    </td>
-                    <td>
-                      <span :class="`status-badge ${station.status.toLowerCase()}`">
-                        {{ station.status }}
-                      </span>
-                    </td>
-                    <td class="power-cell">
-                      <span class="power-value">{{ station.powerOutput }}</span>
-                      <span class="power-unit">kW</span>
-                    </td>
-                    <td class="connector-cell">{{ station.connectorType }}</td>
-                    <td class="actions-cell">
-                      <button @click.stop="editStation(station)" class="table-action-btn edit-btn">
-                        ✏️
-                      </button>
-                      <button @click.stop="confirmDeleteStation(station._id)" class="table-action-btn delete-btn">
-                        🗑️
-                      </button>
-                    </td>
-                  </tr>
-                  <tr v-if="filteredStations.length === 0">
-                    <td colspan="6" class="no-stations">
-                      <div class="empty-table-state">
-                        <span class="empty-icon">⚡</span>
-                        <span>No charging stations found</span>
-                      </div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+        <div v-if="viewMode === 'table'" class="stations-table-container">
+          <div class="table-wrapper">
+            <table class="stations-table">
+              <thead>
+                <tr>
+                  <th>Station</th>
+                  <th>Location</th>
+                  <th>Status</th>
+                  <th>Power</th>
+                  <th>Connector</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="station in paginatedStations" :key="station._id" class="station-row">
+                  <td class="station-cell">
+                    <div class="station-name-cell">
+                      <span class="station-icon">⚡</span>
+                      <span class="station-name">{{ station.name }}</span>
+                    </div>
+                  </td>
+                  <td class="location-cell">
+                    <div v-if="station.location?.address" class="address">{{ station.location.address }}</div>
+                    <div class="coordinates">
+                      {{ station.location?.latitude?.toFixed(4) }}, {{ station.location?.longitude?.toFixed(4) }}
+                    </div>
+                  </td>
+                  <td>
+                    <span :class="`status-badge ${station.status.toLowerCase()}`">
+                      {{ station.status }}
+                    </span>
+                  </td>
+                  <td class="power-cell">
+                    <span class="power-value">{{ station.powerOutput }}</span>
+                    <span class="power-unit">kW</span>
+                  </td>
+                  <td class="connector-cell">{{ station.connectorType }}</td>
+                  <td class="actions-cell">
+                    <button @click.stop="editStation(station)" class="table-action-btn edit-btn">
+                      ✏️
+                    </button>
+                    <button @click.stop="confirmDeleteStation(station._id)" class="table-action-btn delete-btn">
+                      🗑️
+                    </button>
+                  </td>
+                </tr>
+                <tr v-if="filteredStations.length === 0">
+                  <td colspan="6" class="no-stations">
+                    <div class="empty-table-state">
+                      <span class="empty-icon">⚡</span>
+                      <span>No charging stations found</span>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-        </transition>
+        </div>
       </div>
 
       <!-- Enhanced Pagination -->
@@ -301,6 +296,20 @@ const filters = ref({
   maxPower: '' 
 })
 const viewMode = ref('grid')
+
+const defaultStationData = {
+  name: '',
+  location: {
+    latitude: null,
+    longitude: null,
+    address: ''
+  },
+  status: 'Active',
+  powerOutput: null,
+  connectorType: '',
+  price: 0,
+  amenities: []
+}
 
 const filterLabels = {
   status: 'Status',
@@ -386,6 +395,16 @@ const updatePagination = (totalItems) => {
   }
 }
 
+const openAddForm = () => {
+  stationToEdit.value = null
+  showAddForm.value = true
+}
+
+const closeModal = () => {
+  showAddForm.value = false
+  stationToEdit.value = null
+}
+
 const handleAddStation = async (stationData) => {
   try {
     if (stationToEdit.value) {
@@ -401,16 +420,6 @@ const handleAddStation = async (stationData) => {
   } catch (error) {
     toast.error(error.message || 'Failed to save station')
   }
-}
-
-const openAddForm = () => {
-  stationToEdit.value = null
-  showAddForm.value = true
-}
-
-const closeModal = () => {
-  showAddForm.value = false
-  stationToEdit.value = null
 }
 
 const selectStation = (station) => {
@@ -462,15 +471,25 @@ onMounted(() => {
 })
 </script>
 
+
 <style scoped>
 /* Global Styles */
+/* Add this at the top of your style section */
+.charging-stations-container {
+  color: var(--text-color, #1a1a1a); /* Default to dark gray, but can be overridden */
+}
+
+@media (prefers-color-scheme: dark) {
+  .charging-stations-container {
+    --text-color: #f9fafb; /* Light color for dark mode */
+  }
+}
 .charging-stations-container {
   padding: 2rem;
   max-width: 1400px;
   margin: 0 auto;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   min-height: 100vh;
-  color: #333; /* Improved text contrast */
 }
 
 /* Header Section */
@@ -483,7 +502,7 @@ onMounted(() => {
   justify-content: space-between;
   align-items: flex-start;
   gap: 2rem;
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(10px);
   padding: 2rem;
   border-radius: 20px;
@@ -514,7 +533,7 @@ onMounted(() => {
 }
 
 .subtitle {
-  color: #555; /* Improved contrast */
+  color: #6b7280;
   font-size: 1.1rem;
   margin: 0;
 }
@@ -552,7 +571,7 @@ onMounted(() => {
 /* Filters Section */
 .filters-section {
   margin-bottom: 2rem;
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(10px);
   border-radius: 20px;
   padding: 2rem;
@@ -613,7 +632,6 @@ onMounted(() => {
   font-size: 0.95rem;
   transition: all 0.3s ease;
   background: white;
-  color: #333; /* Improved contrast */
 }
 
 .filter-input:focus {
@@ -651,7 +669,85 @@ onMounted(() => {
   box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
+/* Add these styles to your existing CSS */
+.station-modal-content {
+  background: white;
+  color: #1a1a1a; /* Ensure default text color is dark */
+}
 
+@media (prefers-color-scheme: dark) {
+  .station-modal-content {
+    background: #1f2937;
+    color: #f9fafb; /* Light text for dark mode */
+  }
+  
+  /* Ensure form inputs are visible in dark mode */
+  .station-modal-content input,
+  .station-modal-content select,
+  .station-modal-content textarea {
+    background: #374151;
+    color: #f9fafb;
+    border-color: #4b5563;
+  }
+  
+  .station-modal-content label {
+    color: #f9fafb;
+  }
+  
+  /* Make sure placeholders are visible */
+  .station-modal-content ::placeholder {
+    color: #9ca3af;
+    opacity: 1;
+  }
+  
+  /* Style for disabled inputs */
+  .station-modal-content input:disabled,
+  .station-modal-content select:disabled,
+  .station-modal-content textarea:disabled {
+    background: #4b5563;
+    color: #d1d5db;
+  }
+}
+
+/* Make sure the modal content has proper contrast in both modes */
+.modal-title,
+.modal-subtitle {
+  color: inherit; /* Inherits from parent which we set above */
+}
+
+/* If you're using any specific form component classes, add them here */
+.charging-station-form {
+  color: inherit;
+}
+
+.charging-station-form label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: inherit;
+}
+
+.charging-station-form input,
+.charging-station-form select,
+.charging-station-form textarea {
+  width: 100%;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  background: white;
+  color: #1a1a1a;
+}
+
+@media (prefers-color-scheme: dark) {
+  .charging-station-form input,
+  .charging-station-form select,
+  .charging-station-form textarea {
+    background: #374151;
+    border-color: #4b5563;
+    color: #f9fafb;
+  }
+}
 .station-modal-header {
   display: flex;
   justify-content: space-between;
@@ -667,7 +763,7 @@ onMounted(() => {
 .modal-title {
   font-size: 1.8rem;
   font-weight: 700;
-  color: #1a1a1a;
+  color:rgb(229, 229, 229);
   margin: 0 0 0.5rem 0;
   display: flex;
   align-items: center;
@@ -679,7 +775,7 @@ onMounted(() => {
 }
 
 .modal-subtitle {
-  color: #555; /* Improved contrast */
+  color:rgb(167, 167, 167);
   margin: 0;
   font-size: 1rem;
 }
@@ -838,7 +934,7 @@ onMounted(() => {
 }
 
 .coordinates {
-  color: #555; /* Improved contrast */
+  color: #6b7280;
   font-size: 0.9rem;
 }
 
@@ -851,7 +947,7 @@ onMounted(() => {
 }
 
 .connector-label {
-  color: #555; /* Improved contrast */
+  color: #6b7280;
   font-size: 0.9rem;
 }
 
@@ -923,7 +1019,7 @@ onMounted(() => {
 }
 
 .empty-state p {
-  color: #555; /* Improved contrast */
+  color: #6b7280;
   margin-bottom: 2rem;
 }
 
@@ -976,7 +1072,6 @@ onMounted(() => {
 .stations-table td {
   padding: 1.5rem 1rem;
   border-bottom: 1px solid #f3f4f6;
-  color: #333; /* Improved contrast */
 }
 
 .station-row {
@@ -1009,7 +1104,7 @@ onMounted(() => {
 }
 
 .location-cell .coordinates {
-  color: #555; /* Improved contrast */
+  color: #6b7280;
   font-size: 0.85rem;
 }
 
@@ -1068,7 +1163,7 @@ onMounted(() => {
   align-items: center;
   gap: 1rem;
   padding: 3rem;
-  color: #555; /* Improved contrast */
+  color: #6b7280;
 }
 
 .empty-table-state .empty-icon {
@@ -1134,7 +1229,7 @@ onMounted(() => {
 
 .results-text {
   font-size: 0.9rem;
-  color: #555; /* Improved contrast */
+  color: #6b7280;
 }
 
 .pagination-controls {
@@ -1376,7 +1471,6 @@ onMounted(() => {
   .pagination {
     background: rgba(31, 41, 55, 0.9);
     border-color: rgba(75, 85, 99, 0.3);
-    color: #f9fafb;
   }
   
   .main-title,
@@ -1389,7 +1483,7 @@ onMounted(() => {
   .subtitle,
   .coordinates,
   .connector-label {
-    color: #d1d5db;
+    color: #9ca3af;
   }
   
   .filter-input {
@@ -1400,15 +1494,10 @@ onMounted(() => {
   
   .station-modal-content {
     background: #1f2937;
-    color: #f9fafb;
   }
   
   .stations-table th {
     background: linear-gradient(135deg, #374151 0%, #4b5563 100%);
-    color: #f9fafb;
-  }
-  
-  .stations-table td {
     color: #f9fafb;
   }
 }
