@@ -1,87 +1,101 @@
 <template>
   <AppLayout>
-    <div class="flex flex-col h-full">
-      <div class="flex justify-between items-center mb-4">
-        <h1 class="text-2xl font-bold">Charging Stations Map</h1>
-        <div class="flex gap-4">
-          <div class="flex items-center gap-1">
-            <div class="w-3 h-3 bg-green-500 rounded-full"></div>
-            <span class="text-sm">Active</span>
+    <div class="map-container">
+      <!-- Header Section -->
+      <div class="header-section">
+        <div class="header-content">
+          <div class="header-text">
+            <h1 class="main-title">
+              <span class="title-icon">🗺️</span>
+              Charging Stations Map
+            </h1>
+            <p class="subtitle">Visual overview of your charging network locations</p>
           </div>
-          <div class="flex items-center gap-1">
-            <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
-            <span class="text-sm">Maintenance</span>
-          </div>
-          <div class="flex items-center gap-1">
-            <div class="w-3 h-3 bg-red-500 rounded-full"></div>
-            <span class="text-sm">Inactive</span>
+          <div class="status-legend">
+            <div class="legend-item">
+              <div class="legend-dot green"></div>
+              <span>Active</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-dot yellow"></div>
+              <span>Maintenance</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-dot red"></div>
+              <span>Inactive</span>
+            </div>
           </div>
         </div>
       </div>
-      
-      <div class="card flex-1 p-0 overflow-hidden">
-        <div id="map" class="h-full w-full"></div>
+
+      <!-- Map Card -->
+      <div class="map-card">
+        <div id="map" class="map-view"></div>
         
         <!-- Station Details Modal -->
         <div v-if="selectedStation" class="modal-overlay">
           <div class="modal-content">
-            <div class="p-6">
-              <div class="flex justify-between items-start mb-4">
-                <h3 class="text-xl font-bold">{{ selectedStation.name }}</h3>
-                <button @click="selectedStation = null" class="text-gray-500 hover:text-gray-700 text-2xl">
-                  &times;
-                </button>
+            <div class="modal-header">
+              <h3 class="modal-title">
+                <span class="modal-icon">⚡</span>
+                {{ selectedStation.name }}
+              </h3>
+              <button @click="selectedStation = null" class="modal-close">
+                &times;
+              </button>
+            </div>
+            
+            <div class="modal-body">
+              <div class="detail-row">
+                <span class="detail-label">Status:</span>
+                <span :class="`status-badge ${selectedStation.status.toLowerCase()}`">
+                  {{ selectedStation.status }}
+                </span>
               </div>
               
-              <div class="space-y-3">
-                <div>
-                  <span class="font-medium">Status:</span>
-                  <span :class="getStatusClass(selectedStation.status)" class="ml-2 px-2 py-1 rounded-full text-xs">
-                    {{ selectedStation.status }}
+              <div class="detail-row">
+                <span class="detail-label">Location:</span>
+                <p class="detail-value">{{ selectedStation.location.address || 'No address available' }}</p>
+                <p class="detail-subtext">
+                  {{ selectedStation.location.latitude.toFixed(4) }}, 
+                  {{ selectedStation.location.longitude.toFixed(4) }}
+                </p>
+              </div>
+              
+              <div class="detail-row">
+                <span class="detail-label">Power Output:</span>
+                <span class="detail-value">
+                  <span class="power-value">{{ selectedStation.powerOutput }}</span>
+                  <span class="power-unit">kW</span>
+                </span>
+              </div>
+              
+              <div class="detail-row">
+                <span class="detail-label">Connector Type:</span>
+                <span class="detail-value">{{ selectedStation.connectorType }}</span>
+              </div>
+              
+              <div v-if="selectedStation.amenities?.length" class="detail-row">
+                <span class="detail-label">Amenities:</span>
+                <div class="amenities-grid">
+                  <span 
+                    v-for="amenity in selectedStation.amenities" 
+                    :key="amenity"
+                    class="amenity-badge"
+                  >
+                    {{ amenity }}
                   </span>
                 </div>
-                
-                <div>
-                  <span class="font-medium">Location:</span>
-                  <p class="text-gray-700">{{ selectedStation.location.address || 'No address' }}</p>
-                  <p class="text-gray-500 text-sm">
-                    {{ selectedStation.location.latitude.toFixed(4) }}, 
-                    {{ selectedStation.location.longitude.toFixed(4) }}
-                  </p>
-                </div>
-                
-                <div>
-                  <span class="font-medium">Power Output:</span>
-                  <span class="ml-2">{{ selectedStation.powerOutput }} kW</span>
-                </div>
-                
-                <div>
-                  <span class="font-medium">Connector Type:</span>
-                  <span class="ml-2">{{ selectedStation.connectorType }}</span>
-                </div>
-                
-                <div v-if="selectedStation.amenities?.length">
-                  <span class="font-medium">Amenities:</span>
-                  <div class="flex flex-wrap gap-2 mt-1">
-                    <span 
-                      v-for="amenity in selectedStation.amenities" 
-                      :key="amenity"
-                      class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded"
-                    >
-                      {{ amenity }}
-                    </span>
-                  </div>
-                </div>
               </div>
-              
-              <div class="mt-6 flex justify-end">
-                <button
-                  @click="selectedStation = null"
-                  class="btn btn-outline"
-                >
-                  Close
-                </button>
-              </div>
+            </div>
+            
+            <div class="modal-footer">
+              <button
+                @click="selectedStation = null"
+                class="modal-button"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>
@@ -102,21 +116,12 @@ const selectedStation = ref(null)
 let map = null
 let markers = []
 
-const getStatusClass = (status) => {
-  switch (status) {
-    case 'Active': return 'badge badge-success'
-    case 'Inactive': return 'badge badge-error'
-    case 'Maintenance': return 'badge badge-warning'
-    default: return 'badge badge-info'
-  }
-}
-
 const getMarkerColor = (status) => {
   switch (status) {
-    case 'Active': return '#4CAF50' // Green
-    case 'Inactive': return '#F44336' // Red
-    case 'Maintenance': return '#FFC107' // Yellow
-    default: return '#2196F3' // Blue
+    case 'Active': return '#10B981' // Green
+    case 'Inactive': return '#EF4444' // Red
+    case 'Maintenance': return '#F59E0B' // Yellow
+    default: return '#3B82F6' // Blue
   }
 }
 
@@ -154,9 +159,14 @@ const updateMarkers = () => {
       {
         icon: L.divIcon({
           className: 'custom-marker',
-          html: `<div style="background-color: ${getMarkerColor(station.status)}" class="marker-pin"></div>`,
-          iconSize: [20, 20],
-          iconAnchor: [10, 20]
+          html: `
+            <div class="marker-container">
+              <div style="background-color: ${getMarkerColor(station.status)}" class="marker-pin"></div>
+              <div class="marker-pulse"></div>
+            </div>
+          `,
+          iconSize: [30, 30],
+          iconAnchor: [15, 30]
         })
       }
     ).addTo(map)
@@ -199,8 +209,376 @@ watch(() => stationsStore.stations, (newStations) => {
 </script>
 
 <style scoped>
-#map {
-  min-height: 500px;
+.map-container {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  min-height: 100vh;
+}
+
+/* Header Section */
+.header-section {
+  margin-bottom: 2rem;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  padding: 2rem;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.header-text {
+  flex: 1;
+}
+
+.main-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #1a1a1a;
+  margin: 0 0 0.5rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.title-icon {
+  font-size: 2rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.subtitle {
+  color: #555;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.status-legend {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  color: #555;
+}
+
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.legend-dot.green {
+  background: linear-gradient(135deg, #10B981 0%, #34D399 100%);
+}
+
+.legend-dot.yellow {
+  background: linear-gradient(135deg, #F59E0B 0%, #FCD34D 100%);
+}
+
+.legend-dot.red {
+  background: linear-gradient(135deg, #EF4444 0%, #FCA5A5 100%);
+}
+
+/* Map Card */
+.map-card {
+  height: 600px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+  position: relative;
+}
+
+.map-view {
+  width: 100%;
+  height: 100%;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  width: 90%;
+  max-width: 500px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  overflow: hidden;
+  animation: modalFadeIn 0.3s ease-out;
+}
+
+.modal-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid #f3f4f6;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.modal-icon {
+  font-size: 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.75rem;
+  color: #6b7280;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.modal-close:hover {
+  color: #1a1a1a;
+}
+
+.modal-body {
+  padding: 1.5rem;
+}
+
+.detail-row {
+  margin-bottom: 1rem;
+}
+
+.detail-label {
+  font-weight: 600;
+  color: #374151;
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.detail-value {
+  color: #333;
+}
+
+.detail-subtext {
+  color: #6b7280;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+/* Status Badges */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: capitalize;
+  border: 1px solid transparent;
+}
+
+.status-badge.active {
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  color: #065f46;
+  border-color: #a7f3d0;
+}
+
+.status-badge.inactive {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  color: #991b1b;
+  border-color: #fecaca;
+}
+
+.status-badge.maintenance {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  color: #92400e;
+  border-color: #fde68a;
+}
+
+.power-value {
+  font-weight: 700;
+  color: #667eea;
+}
+
+.power-unit {
+  color: #6b7280;
+  margin-left: 0.25rem;
+}
+
+.amenities-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.amenity-badge {
+  padding: 0.375rem 0.75rem;
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  color: #1e40af;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.modal-footer {
+  padding: 1.5rem;
+  border-top: 1px solid #f3f4f6;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.modal-button {
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 20px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.modal-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .map-container {
+    background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+  }
+  
+  .header-content,
+  .map-card,
+  .modal-content {
+    background: rgba(31, 41, 55, 0.9);
+    border-color: rgba(75, 85, 99, 0.3);
+  }
+  
+  .main-title,
+  .modal-title,
+  .detail-label {
+    color: #f9fafb;
+  }
+  
+  .subtitle,
+  .detail-value {
+    color: #d1d5db;
+  }
+  
+  .detail-subtext {
+    color: #9ca3af;
+  }
+  
+  .modal-header,
+  .modal-footer {
+    border-color: #374151;
+  }
+  
+  .modal-close {
+    color: #9ca3af;
+  }
+  
+  .modal-close:hover {
+    color: #f9fafb;
+  }
+  
+  .amenity-badge {
+    background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+    color: #dbeafe;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .map-container {
+    padding: 1rem;
+  }
+  
+  .header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1.5rem;
+    gap: 1.5rem;
+  }
+  
+  .status-legend {
+    width: 100%;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  
+  .map-card {
+    height: 500px;
+  }
+  
+  .main-title {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-content {
+    padding: 1rem;
+  }
+  
+  .main-title {
+    font-size: 1.75rem;
+  }
+  
+  .modal-content {
+    width: 95%;
+  }
 }
 </style>
 
@@ -212,12 +590,21 @@ watch(() => stationsStore.stations, (newStations) => {
   align-items: center;
 }
 
+.marker-container {
+  position: relative;
+  width: 30px;
+  height: 30px;
+}
+
 .marker-pin {
   width: 20px;
   height: 20px;
   border-radius: 50% 50% 50% 0;
   transform: rotate(-45deg);
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 5px;
+  z-index: 2;
 }
 
 .marker-pin::after {
@@ -228,5 +615,31 @@ watch(() => stationsStore.stations, (newStations) => {
   background: white;
   position: absolute;
   border-radius: 50%;
+}
+
+.marker-pulse {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  background: inherit;
+  border-radius: 50%;
+  opacity: 0.6;
+  z-index: 1;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.6;
+  }
+  70% {
+    transform: scale(1.3);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
 }
 </style>

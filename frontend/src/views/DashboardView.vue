@@ -122,9 +122,11 @@ const stats = computed(() => ({
 }))
 
 // Get 5 most recent stations
-const recentStations = computed(() => [...stations.value]
-  .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-  .slice(0, 5)
+const recentStations = computed(() => {
+  return [...stations.value]
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .slice(0, 5)
+})
 
 // Format date
 const formatDate = (dateStr) => {

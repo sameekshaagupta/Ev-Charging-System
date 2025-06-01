@@ -8,12 +8,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "vue": "^3.3.8",
-    "vue-router": "^4.2.5",
-    "pinia": "^2.1.7",
+    "@heroicons/vue": "^2.2.0",
+    "@vueuse/core": "^10.5.0",
     "axios": "^1.6.2",
     "leaflet": "^1.9.4",
-    "@vueuse/core": "^10.5.0",
+    "pinia": "^2.1.7",
+    "vue": "^3.3.8",
+    "vue-router": "^4.2.5",
     "vue-toastification": "^2.0.0-rc.5"
   },
   "devDependencies": {
