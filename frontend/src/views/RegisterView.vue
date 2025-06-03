@@ -8,26 +8,26 @@
       
       <form @submit.prevent="handleRegister" class="register-form">
         <div class="form-group">
-          <label for="name" class="form-label">Name</label>
+          <label for="name" class="form-label">Full Name</label>
           <input
             id="name"
             v-model="form.name"
             type="text"
             required
             class="form-input"
-            placeholder="Full name"
+            placeholder="Enter your full name"
           />
         </div>
         
         <div class="form-group">
-          <label for="email" class="form-label">Email</label>
+          <label for="email" class="form-label">Email address</label>
           <input
             id="email"
             v-model="form.email"
             type="email"
             required
             class="form-input"
-            placeholder="Email address"
+            placeholder="Enter your email"
           />
         </div>
         
@@ -40,7 +40,7 @@
             required
             minlength="6"
             class="form-input"
-            placeholder="Password (min 6 characters)"
+            placeholder="Enter your password (min 6 characters)"
           />
         </div>
 
@@ -85,41 +85,54 @@ const handleRegister = async () => {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
-  background-color: #f8f9fa;
-  padding: 1rem;
+  height: 100vh;
+  width: 100vw;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
 }
 
 .register-card {
-  width: 100%;
-  max-width: 400px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 90vw;
+  max-width: 800px;
+  height: 90vh;
+  max-height: 650px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 24px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .register-title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #1a1a2e;
+  font-size: 2rem;
+  font-weight: 800;
+  color: #1a1a1a;
   text-align: center;
   margin-bottom: 0.5rem;
 }
 
 .register-subtitle {
   text-align: center;
-  color: #6c757d;
+  color: #6b7280;
   margin-bottom: 2rem;
+  font-size: 1.1rem;
 }
 
 .register-link {
-  color: #4361ee;
-  font-weight: 500;
+  color: #667eea;
+  font-weight: 600;
   text-decoration: none;
+  transition: all 0.3s ease;
 }
 
 .register-link:hover {
+  color: #764ba2;
   text-decoration: underline;
 }
 
@@ -127,6 +140,8 @@ const handleRegister = async () => {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  margin: 0 auto;
+  width: 80%;
 }
 
 .form-group {
@@ -136,43 +151,87 @@ const handleRegister = async () => {
 }
 
 .form-label {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #1a1a2e;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #374151;
 }
 
 .form-input {
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  padding: 0.85rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
   font-size: 1rem;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  background: white;
 }
 
 .form-input:focus {
-  border-color: #4361ee;
-  box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
   outline: none;
 }
 
 .register-button {
-  padding: 0.75rem;
-  background-color: #4361ee;
+  padding: 0.85rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 12px;
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  margin-top: 0.5rem;
 }
 
-.register-button:hover {
-  background-color: #3f37c9;
+.register-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
 }
 
 .register-button:disabled {
   opacity: 0.7;
   cursor: not-allowed;
+  background: linear-gradient(135deg, #a3b8ff 0%, #b8a3ff 100%);
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .register-container {
+    background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+  }
+  
+  .register-card {
+    background: rgba(31, 41, 55, 0.9);
+    border-color: rgba(75, 85, 99, 0.3);
+  }
+  
+  .register-title {
+    color: #f9fafb;
+  }
+  
+  .register-subtitle {
+    color: #9ca3af;
+  }
+  
+  .form-label {
+    color: #f9fafb;
+  }
+  
+  .form-input {
+    background: #374151;
+    border-color: #4b5563;
+    color: #f9fafb;
+  }
+  
+  .form-input:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+  }
+  
+  ::placeholder {
+    color: #9ca3af;
+  }
 }
 </style>
