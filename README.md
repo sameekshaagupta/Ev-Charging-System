@@ -1,6 +1,8 @@
 # ⚡ EV Charging Station Management System
 
-![Project Banner](https://example.com/ev-banner.jpg) *(Add your image URL here)*
+## 🚀 Overview
+
+This is a full-stack application built with Node.js, Express, and Vue.js to manage EV Charging Stations. It includes REST APIs for CRUD operations, user authentication using JWT, a map view for station visualization, and cloud deployment.
 
 ## 🌐 Live Deployment
 
@@ -12,10 +14,20 @@
 
 | Component  | Technologies                        |
 | ---------- | ----------------------------------- |
-| Frontend   | React, Mapbox GL JS, Axios          |
+| Frontend   | Vue.js, Axios, Google Maps API      |
 | Backend    | Node.js, Express, MongoDB           |
 | Security   | JWT, Helmet, Rate Limiting          |
 | Deployment | Vercel (Frontend), Render (Backend) |
+
+## ✅ Features
+
+* User authentication (Login/Register)
+* JWT-protected routes for station management
+* CRUD operations for charging stations
+* Station attributes: Name, Latitude, Longitude, Status, Power Output, Connector Type
+* Filter chargers by status, power output, and connector type
+* Google Maps integration to visualize station locations
+* Mobile responsive and user-friendly UI
 
 ## 🚀 Quick Start
 
@@ -35,26 +47,21 @@ npm start
 ```bash
 cd frontend
 npm install
-echo "REACT_APP_API_URL=http://localhost:5000
-REACT_APP_MAPBOX_TOKEN=your_token" > .env
-npm start
+echo "VITE_API_URL=http://localhost:5000
+VITE_GOOGLE_MAPS_KEY=your_key" > .env
+npm run dev
 ```
-
-## 📌 Key Features
-
-* User authentication (Login/Register)
-* Interactive map with charging stations
-* Admin dashboard for station management
-* Mobile-responsive design
-* Secure API endpoints with CORS protection
 
 ## 🔍 API Endpoints
 
 | Method | Endpoint           | Description                  |
 | ------ | ------------------ | ---------------------------- |
-| POST   | /api/auth/login    | User login                   |
+| POST   | /api/auth/signup   | Register new user            |
+| POST   | /api/auth/login    | User login (JWT Token)       |
 | GET    | /api/stations      | List all stations            |
-| POST   | /api/stations      | Add new station (Admin only) |
+| POST   | /api/stations      | Add new station (Protected)  |
+| PUT    | /api/stations/\:id | Update a station (Protected) |
+| DELETE | /api/stations/\:id | Delete a station (Protected) |
 | GET    | /api/stations/\:id | Get station details          |
 
 ## ⚙ Deployment Configuration
@@ -79,19 +86,9 @@ FRONTEND_URL=https://your-frontend.vercel.app
 **Environment Variables:**
 
 ```env
-REACT_APP_API_URL=https://your-backend.onrender.com
-REACT_APP_MAPBOX_TOKEN=pk.your_mapbox_key
+VITE_API_URL=https://your-backend.onrender.com
+VITE_GOOGLE_MAPS_KEY=your_google_maps_key
 ```
-
-## 🗓 Development Timeline
-
-| Day | Tasks Completed                  |
-| --- | -------------------------------- |
-| 1   | Backend CRUD APIs + JWT Auth     |
-| 2   | Frontend auth + station list UI  |
-| 3   | Map integration + API connection |
-| 4   | Testing & deployment             |
-| 5   | Documentation & final submission |
 
 ## 📂 Project Structure
 
@@ -103,13 +100,7 @@ REACT_APP_MAPBOX_TOKEN=pk.your_mapbox_key
 /frontend
   ├— public/       # Static assets
   ├— src/
-     ├— components # React components
-     ├— pages/     # Application views
-     └— App.js     # Main component
+     ├— components # Vue components
+     ├— views/     # Application views
+     └— main.js    # App entry point
 ```
-
-## 🛠 Troubleshooting
-
-* **CORS Errors**: Verify `FRONTEND_URL` matches exactly in backend
-* **Database Issues**: Check MongoDB Atlas IP whitelisting
-* **Map Not Loading**: Validate Mapbox token in frontend `.env`
