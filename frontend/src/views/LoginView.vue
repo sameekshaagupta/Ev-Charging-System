@@ -38,6 +38,9 @@
         >
           {{ authStore.loading ? 'Signing in...' : 'Sign in' }}
         </button>
+        <button :disabled="isLoading" @click="handleClick">
+        {{ isLoading? "Loading..": "Click Me"}}
+        </button>
       </form>
     </div>
   </div>
@@ -50,7 +53,14 @@ import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const isLoading = ref(false)
 
+function handleClick(){
+  isLoading.value=true
+  setTimeout(()=>{
+    isLoading.value=false
+  }, 5000)
+}
 const form = ref({
   email: '',
   password: ''
@@ -66,6 +76,23 @@ const handleLogin = async () => {
 }
 </script>
 <style scoped>
+button[disabled]{
+  cursor:not-allowed;
+  
+}
+button{
+   padding: 1rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  margin-top: 0.5rem;
+}
 .login-container {
   display: flex;
   justify-content: center;
