@@ -38,7 +38,6 @@
         >
           {{ authStore.loading ? 'Signing in...' : 'Sign in' }}
         </button>
-        
       </form>
     </div>
   </div>
@@ -51,14 +50,8 @@ import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
 const authStore = useAuthStore()
-const isLoading = ref(false)
 
-function handleClick(){
-  isLoading.value=true
-  setTimeout(()=>{
-    isLoading.value=false
-  }, 5000)
-}
+
 const form = ref({
   email: '',
   password: ''
