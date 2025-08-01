@@ -38,9 +38,7 @@
         >
           {{ authStore.loading ? 'Signing in...' : 'Sign in' }}
         </button>
-        <button :disabled="isLoading" @click="handleClick">
-        {{ isLoading? "Loading..": "Click Me"}}
-        </button>
+        
       </form>
     </div>
   </div>
@@ -75,11 +73,7 @@ const handleLogin = async () => {
   }
 }
 </script>
-<style scoped>
-button[disabled]{
-  cursor:not-allowed;
-  
-}
+
 button{
    padding: 1rem;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
